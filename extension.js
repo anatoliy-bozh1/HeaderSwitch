@@ -61,21 +61,33 @@ function activate(context) {
             });
             if (!pickExt) return;
 
-            let newFilePath = path.join(dir, base + pickExt);
+            let targetDir = dir;
+            if (wsRoot) {
+                if (pickExt === '.cpp') {
+                    const srcFolder = path.join(wsRoot, 'src');
+                    if (fs.existsSync(srcFolder)) targetDir = srcFolder;
+                } else {
+                    const includeFolder = path.join(wsRoot, 'include');
+                    if (fs.existsSync(includeFolder)) targetDir = includeFolder;
+                }
+            }
+
+            let newFilePath = path.join(targetDir, base + pickExt);
 
             let content = '';
             if (pickExt === '.cpp') {
-                content = '#include "' + base + '.h"\n\nint main() {\n\n return 0;\n}\n';
+                content = `#include "${base}.h"\n\nint main() {\n    return 0;\n}\n`;
             } else {
-                content = '#pragma once\n\n// ' + base + pickExt + '\n';
+                content = `#pragma once\n\n// ${base}${pickExt}\n`;
             }
 
+            await fs.promises.mkdir(path.dirname(newFilePath), { recursive: true });
             await fs.promises.writeFile(newFilePath, content, 'utf8');
 
             const doc = await vscode.workspace.openTextDocument(newFilePath);
             await vscode.window.showTextDocument(doc);
 
-            vscode.window.showInformationMessage('Создан файл ' + base + pickExt);
+            vscode.window.showInformationMessage('Создан файл ' + path.relative(wsRoot || '', newFilePath));
         }
     });
 
