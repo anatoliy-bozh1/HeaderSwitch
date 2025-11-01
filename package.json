@@ -8,14 +8,14 @@
     "vscode": "^1.85.0"
   },
   "activationEvents": [
-    "onCommand:headerswitch.helloWorld"
+    "onCommand:headerswitch.switch"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "headerswitch.helloWorld",
-        "title": "Hello HeaderSwitch"
+        "command": "headerswitch.switch",
+        "title": "Switch Header/Source"
       }
     ]
   }

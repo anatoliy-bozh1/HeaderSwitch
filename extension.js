@@ -1,9 +1,58 @@
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 
 function activate(context) {
-    vscode.commands.registerCommand('headerswitch.helloWorld', () => {
-        vscode.window.showInformationMessage('HeaderSwitch is working!');
+    let disposable = vscode.commands.registerCommand('headerswitch.switch', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showInformationMessage(
+                'Откройте C++ файл (.cpp, .h или .hpp), чтобы использовать HeaderSwitch.'
+            );
+            return;
+        }
+
+        const file = editor.document.fileName;
+        const ext = path.extname(file).toLowerCase();
+        const base = path.basename(file, ext);
+        const dir = path.dirname(file);
+
+        const headerExts = ['.h', '.hpp'];
+        const sourceExts = ['.cpp'];
+
+        let targets;
+        if (sourceExts.includes(ext)) {
+            targets = headerExts;
+        } else if (headerExts.includes(ext)) {
+            targets = sourceExts;
+        } else {
+            vscode.window.showInformationMessage(
+                'Этот файл не является C++ исходником или заголовком (.cpp/.h/.hpp).'
+            );
+            return;
+        }
+
+        let found = null;
+        for (let i = 0; i < targets.length; i++) {
+            const candidate = path.join(dir, base + targets[i]);
+            if (fs.existsSync(candidate)) {
+                found = candidate;
+                break;
+            }
+        }
+
+        if (found) {
+            vscode.workspace.openTextDocument(found).then((doc) => {
+                vscode.window.showTextDocument(doc);
+            });
+        } else {
+            vscode.window.showInformationMessage(
+                'Парный файл не найден. Создайте его в этой папке или в папках include/src.'
+            );
+        }
     });
+
+    context.subscriptions.push(disposable);
 }
 
 function deactivate() {}
