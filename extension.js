@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 function activate(context) {
-    let disposable = vscode.commands.registerCommand('headerswitch.switch', () => {
+    let disposable = vscode.commands.registerCommand('headerswitch.switch', async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             vscode.window.showInformationMessage(
@@ -32,22 +32,32 @@ function activate(context) {
             return;
         }
 
+        const wsRoot = vscode.workspace.rootPath || '';
+        const searchFolders = [
+            dir,
+            path.join(wsRoot, 'include'),
+            path.join(wsRoot, 'src')
+        ];
+
         let found = null;
-        for (let i = 0; i < targets.length; i++) {
-            const candidate = path.join(dir, base + targets[i]);
-            if (fs.existsSync(candidate)) {
-                found = candidate;
-                break;
+
+        for (const folder of searchFolders) {
+            for (let i = 0; i < targets.length; i++) {
+                const candidate = path.join(folder, base + targets[i]);
+                if (fs.existsSync(candidate)) {
+                    found = candidate;
+                    break;
+                }
             }
+            if (found) break;
         }
 
         if (found) {
-            vscode.workspace.openTextDocument(found).then((doc) => {
-                vscode.window.showTextDocument(doc);
-            });
+            const doc = await vscode.workspace.openTextDocument(found);
+            await vscode.window.showTextDocument(doc);
         } else {
             vscode.window.showInformationMessage(
-                'Парный файл не найден. Создайте его в этой папке или в папках include/src.'
+                'Парный файл не найден в текущей папке и в папках include/src.'
             );
         }
     });
