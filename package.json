@@ -2,7 +2,7 @@
   "name": "headerswitch",
   "displayName": "HeaderSwitch",
   "description": "Visual Studio Code extension to quickly and automatically switch between C++ source (.cpp) and header (.h/.hpp) files.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "anatoliy-bozh1",
   "engines": {
     "vscode": "^1.85.0"
