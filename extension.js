@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 function activate(context) {
-    let disposable = vscode.commands.registerCommand('headerswitch.switch', async () => {
+    let disposable = vscode.commands.registerCommand('headerswitch.switch', async function() {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             vscode.window.showInformationMessage(
@@ -40,10 +40,10 @@ function activate(context) {
         ];
 
         let found = null;
-
-        for (const folder of searchFolders) {
+        for (let f = 0; f < searchFolders.length; f++) {
+            let folder = searchFolders[f];
             for (let i = 0; i < targets.length; i++) {
-                const candidate = path.join(folder, base + targets[i]);
+                let candidate = path.join(folder, base + targets[i]);
                 if (fs.existsSync(candidate)) {
                     found = candidate;
                     break;
@@ -56,9 +56,26 @@ function activate(context) {
             const doc = await vscode.workspace.openTextDocument(found);
             await vscode.window.showTextDocument(doc);
         } else {
-            vscode.window.showInformationMessage(
-                'Парный файл не найден в текущей папке и в папках include/src.'
-            );
+            const pickExt = await vscode.window.showQuickPick(targets, {
+                placeHolder: 'Парный файл не найден. Выберите расширение нового файла'
+            });
+            if (!pickExt) return;
+
+            let newFilePath = path.join(dir, base + pickExt);
+
+            let content = '';
+            if (pickExt === '.cpp') {
+                content = '#include "' + base + '.h"\n\nint main() {\n\n return 0;\n}\n';
+            } else {
+                content = '#pragma once\n\n// ' + base + pickExt + '\n';
+            }
+
+            await fs.promises.writeFile(newFilePath, content, 'utf8');
+
+            const doc = await vscode.workspace.openTextDocument(newFilePath);
+            await vscode.window.showTextDocument(doc);
+
+            vscode.window.showInformationMessage('Создан файл ' + base + pickExt);
         }
     });
 
