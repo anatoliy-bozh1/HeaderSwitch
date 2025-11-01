@@ -76,7 +76,7 @@ function activate(context) {
 
             let content = '';
             if (pickExt === '.cpp') {
-                content = `#include "${base}.h"\n\nint main() {\n    return 0;\n}\n`;
+                content = `#include "${base}.h"\n\nint main() {\n\n\n    return 0;\n}\n`;
             } else {
                 content = `#pragma once\n\n// ${base}${pickExt}\n`;
             }
